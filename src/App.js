@@ -1,49 +1,66 @@
-import React, { useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
 
 function App() {
   const API_BASE_URL = 'https://api.whitetongueshangout.me/visits';
-  let visitId = null; // Track visit ID
+  let visitId = null; // Variable to store the visit ID
   let visitStarted = false; // Flag to track if visit has started
 
-  useEffect(() => {
-    // Track Visit Start
-    const startVisit = async () => {
-      if (!visitStarted) {
-        try {
-          const response = await axios.post(`${API_BASE_URL}/trackVisitStart`);
-          visitId = response.data.id;  // Store visit ID for tracking the end
-          visitStarted = true; // Set flag to true after starting the visit
-          console.log('Visit started with ID:', visitId);
-        } catch (error) {
-          console.error('Error starting visit:', error);
+  // Function to start tracking the visit
+  function startVisit() {
+    if (!visitStarted) {
+      fetch(`${API_BASE_URL}/trackVisitStart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
         }
-      }
-    };
+        return response.json();
+      })
+      .then(data => {
+        visitId = data.id; // Store the visit ID
+        visitStarted = true; // Set the flag to true
+        console.log('Visit started with ID:', visitId);
+      })
+      .catch(error => {
+        console.error('Error starting visit:', error);
+      });
+    }
+  }
 
-    // End Visit when the user is leaving the page
-    const endVisit = async () => {
-      if (visitId) {
-        try {
-          const response = await axios.post(`${API_BASE_URL}/trackVisitEnd`, { id: visitId });
-          console.log('Visit ended:', response.data);
-        } catch (error) {
-          console.error('Error tracking visit end:', error);
+  // Function to end tracking the visit
+  function endVisit() {
+    if (visitId) {
+      fetch(`${API_BASE_URL}/trackVisitEnd`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: visitId }),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
         }
-      }
-    };
+        return response.json();
+      })
+      .then(data => {
+        console.log('Visit ended:', data);
+      })
+      .catch(error => {
+        console.error('Error ending visit:', error);
+      });
+    }
+  }
 
-    // Start visit when component mounts
-    startVisit();
+  // Start tracking the visit when the page loads
+  window.onload = startVisit;
 
-    // Add beforeunload event listener for leaving the page
-    window.addEventListener('beforeunload', endVisit);
-
-    // Cleanup function to remove the event listener
-    return () => {
-      window.removeEventListener('beforeunload', endVisit);
-    };
-  }, []);
+  // End tracking the visit when the window is unloaded
+  window.onbeforeunload = endVisit;
 
   return (
     <div>
