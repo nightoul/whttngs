@@ -3,34 +3,45 @@ import axios from 'axios';
 
 function App() {
   const API_BASE_URL = 'https://api.whitetongueshangout.me/visits';
+  let visitId = null; // Track visit ID
+  let visitStarted = false; // Flag to track if visit has started
 
   useEffect(() => {
-    let visitId = null;
-
     // Track Visit Start
-    async function startVisit() {
-      try {
-        // No need to send IP or location, backend will handle it
-        const response = await axios.post(`${API_BASE_URL}/trackVisitStart`);
-        visitId = response.data.id;  // Store visit ID for tracking the end
-
-        console.log('visitId is: ');
-        console.log(visitId);
-        console.log('endVisitId');
-      } catch (error) {
-        console.error('Error starting visit:', error);
+    const startVisit = async () => {
+      if (!visitStarted) {
+        try {
+          const response = await axios.post(`${API_BASE_URL}/trackVisitStart`);
+          visitId = response.data.id;  // Store visit ID for tracking the end
+          visitStarted = true; // Set flag to true after starting the visit
+          console.log('Visit started with ID:', visitId);
+        } catch (error) {
+          console.error('Error starting visit:', error);
+        }
       }
-    }
+    };
 
+    // End Visit when the user is leaving the page
+    const endVisit = async () => {
+      if (visitId) {
+        try {
+          const response = await axios.post(`${API_BASE_URL}/trackVisitEnd`, { id: visitId });
+          console.log('Visit ended:', response.data);
+        } catch (error) {
+          console.error('Error tracking visit end:', error);
+        }
+      }
+    };
+
+    // Start visit when component mounts
     startVisit();
 
-    // Track Visit End when the component unmounts
+    // Add beforeunload event listener for leaving the page
+    window.addEventListener('beforeunload', endVisit);
+
+    // Cleanup function to remove the event listener
     return () => {
-      if (visitId) {
-        axios.post(`${API_BASE_URL}/trackVisitEnd`, { id: visitId })
-          .then(response => console.log('Visit end tracked:', response.data))
-          .catch(error => console.error('Error tracking visit end:', error));
-      }
+      window.removeEventListener('beforeunload', endVisit);
     };
   }, []);
 
