@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import axios from 'axios';
 
 function App() {
-  const API_BASE_URL = 'https://api.whitetongueshangout.me';
+  const API_BASE_URL = 'https://api.whitetongueshangout.me/visits';
 
   useEffect(() => {
     let visitId = null;
@@ -13,6 +13,10 @@ function App() {
         // No need to send IP or location, backend will handle it
         const response = await axios.post(`${API_BASE_URL}/trackVisitStart`);
         visitId = response.data.id;  // Store visit ID for tracking the end
+
+        console.log('visitId is: ');
+        console.log(visitId);
+        console.log('endVisitId');
       } catch (error) {
         console.error('Error starting visit:', error);
       }
