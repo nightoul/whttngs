@@ -2,7 +2,7 @@
 function App() {
   return (
     <div>
-      whttngs test deploy
+      whttngs test deploy 2
     </div>
   );
 }
